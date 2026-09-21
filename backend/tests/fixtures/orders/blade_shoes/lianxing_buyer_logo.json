@@ -1,0 +1,56 @@
+{
+  "orderId": "111-9999999-0000001",
+  "orderItemId": "162833888888888",
+  "asin": "B0XXXXXX00",
+  "title": "Custom Sneakers With Logo",
+  "quantity": 1,
+  "customizationData": {
+    "type": "PageContainerCustomization",
+    "children": [
+      {
+        "type": "PreviewContainerCustomization",
+        "children": [
+          {
+            "type": "FlatContainerCustomization",
+            "children": [
+              {
+                "type": "ImageCustomization",
+                "name": "上传图片 1",
+                "label": "Add Your Logo",
+                "image": {
+                  "imageName": "buyer-logo-original.png",
+                  "imageUrl": "https://cdn.example.com/buyer-logo-original.png"
+                }
+              },
+              {
+                "type": "OptionCustomization",
+                "name": "选项下拉列表 1",
+                "label": "Choose Your Color",
+                "optionSelection": {
+                  "name": "White",
+                  "label": "White",
+                  "displayValue": "White",
+                  "thumbnailImage": {"imageUrl": "https://cdn.example.com/white-thumb.png"},
+                  "overlayImage": {"imageUrl": "https://cdn.example.com/white-thumb.png"}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "version3.0": {
+    "customizationInfo": {
+      "surfaces": [
+        {
+          "areas": [
+            {"customizationType": "Options", "name": "选项下拉列表 1", "label": "Choose Your Color", "optionValue": "White"},
+            {"customizationType": "ImagePrinting", "name": "图片打印 1", "label": "Logo",
+             "svgImage": {"imageName": "buyer-logo.svg", "imageUrl": "https://cdn.example.com/buyer-logo.svg"}}
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "orderId": "O-FIXTURE-2",
+  "orderItemId": "OI-FIXTURE-2",
+  "sku": "BLADE-WHITE",
+  "OptionCustomization": {
+    "optionSelection": {
+      "value": "White",
+      "thumbnailImage": {"imageUrl": "https://cdn.example/final.png"},
+      "overlayImage": {"imageUrl": "https://cdn.example/final.png"}
+    }
+  }
+}

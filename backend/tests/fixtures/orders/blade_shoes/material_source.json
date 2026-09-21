@@ -1,0 +1,18 @@
+{
+  "orderId": "O-FIXTURE-1",
+  "orderItemId": "OI-FIXTURE-1",
+  "asin": "B0FIXTURE1",
+  "sku": "BLADE-RED",
+  "OptionCustomization": {
+    "optionSelection": {
+      "thumbnailImage": {"imageUrl": "https://cdn.example/material.png", "imageName": "material.png"},
+      "overlayImage": {"imageUrl": "https://cdn.example/effect.png"}
+    }
+  },
+  "ImageCustomization": {"image": {"imageUrl": "https://cdn.example/logo.png", "imageName": "logo.png"}},
+  "ImagePrinting": {"svgImage": {"imageUrl": "https://cdn.example/logo.svg"}},
+  "TextPrinting": [
+    {"label": "Enter Your Name", "value": "Alex"},
+    {"label": "Enter Your Number", "value": "7"}
+  ]
+}

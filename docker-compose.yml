@@ -1,0 +1,95 @@
+# ============================================================================
+# 素材中心 V2 —— Phase 1 后端本地编排
+#
+#   mysql    : MySQL 8.0（业务库）
+#   minio    : 对象存储（Asset 真实文件）
+#   backend  : FastAPI + Alembic（启动时自动 upgrade head）
+#
+# 前端仍在本地 npm 起（见 README）。
+#
+# 用法：
+#   docker compose up -d mysql minio          # 只起依赖，后端本地跑（推荐开发）
+#   docker compose up -d --build              # 三个都起
+# ============================================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mc-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: material_center
+    ports:
+      - "3306:3306"
+    volumes:
+      - mc-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  minio:
+    image: minio/minio:latest
+    container_name: mc-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # 控制台
+    volumes:
+      - mc-minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mc-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpass
+      MYSQL_DATABASE: material_center
+      STORAGE_BACKEND: minio
+      S3_ENDPOINT: http://minio:9000
+      # 仅作为备用直链；前端出图统一走后端代理 /api/assets/{id}/content，
+      # 因此 MinIO 桶不需要开公共读，也不会把容器内网地址暴露给浏览器。
+      S3_PUBLIC_BASE_URL: http://127.0.0.1:9000/material-center
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: material-center
+      # 局域网访问 http://192.168.x.x:3000 时必须放行，否则浏览器报 CORS / Failed to fetch
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      CORS_ALLOW_ORIGIN_REGEX: ^http://(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d{1,5})?$
+      PYTHONIOENCODING: utf-8
+    ports:
+      # 必须监听 0.0.0.0（不能只监听 127.0.0.1），否则局域网其它机器连不上后端
+      - "8000:8000"
+
+    # 等 MySQL 真正可连后再 migration（healthcheck 已保证，这里再加一次重试）
+    command: >
+      sh -c "python -m alembic upgrade head &&
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  mc-mysql-data:
+  mc-minio-data:

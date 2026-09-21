@@ -1,0 +1,51 @@
+{
+  "orderId": "113-0564800-5069033",
+  "orderItemId": "162821728552361",
+  "merchantId": "A33GZPEJKEF4UW",
+  "asin": "B0F7XMBMTX",
+  "title": "Custom National Team Soccer Sneakers",
+  "quantity": 1,
+  "customizationData": {
+    "type": "PageContainerCustomization",
+    "children": [
+      {
+        "type": "PreviewContainerCustomization",
+        "children": [
+          {
+            "type": "FlatContainerCustomization",
+            "children": [
+              {
+                "type": "OptionCustomization",
+                "name": "选项下拉列表 1",
+                "label": "Choose Your Color",
+                "optionSelection": {
+                  "name": "Black",
+                  "label": "Black",
+                  "displayValue": "Black",
+                  "thumbnailImage": {"imageUrl": "https://m.media-amazon.com/images/S/gestalt-seller-images-prod-us-east-1/BLACK/thumb.png"},
+                  "overlayImage": {"imageUrl": "https://m.media-amazon.com/images/S/gestalt-seller-images-prod-us-east-1/BLACK/thumb.png"}
+                }
+              },
+              {"type": "TextCustomization", "label": "Enter Your Name", "inputValue": "岡田"},
+              {"type": "TextCustomization", "label": "Enter Your Number", "inputValue": "77"},
+              {"type": "TextCustomization", "label": "Leave Your Request", "inputValue": ""}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "version3.0": {
+    "customizationInfo": {
+      "surfaces": [
+        {
+          "areas": [
+            {"customizationType": "Options", "name": "选项下拉列表 1", "label": "Choose Your Color", "optionValue": "Black"},
+            {"customizationType": "TextPrinting", "name": "数据 1", "label": "Enter Your Name", "text": "岡田"},
+            {"customizationType": "TextPrinting", "name": "数据 2", "label": "Enter Your Number", "text": "77"}
+          ]
+        }
+      ]
+    }
+  }
+}

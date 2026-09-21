@@ -1,0 +1,49 @@
+{
+  "orderId": "112-9328393-2442665",
+  "orderItemId": "162822728552362",
+  "asin": "B0DX24LX44",
+  "title": "Custom Soccer Sneakers Personalized",
+  "quantity": 2,
+  "customizationData": {
+    "type": "PageContainerCustomization",
+    "children": [
+      {
+        "type": "PreviewContainerCustomization",
+        "children": [
+          {
+            "type": "FlatContainerCustomization",
+            "children": [
+              {
+                "type": "OptionCustomization",
+                "name": "选项下拉列表 2",
+                "label": "Choose Your Style",
+                "optionSelection": {
+                  "name": "City Map",
+                  "label": "City Map",
+                  "displayValue": "City Map",
+                  "thumbnailImage": {"imageUrl": "https://m.media-amazon.com/images/S/gestalt-seller-images-prod-us-east-1/CITY/MATERIAL.png"},
+                  "overlayImage": {"imageUrl": "https://m.media-amazon.com/images/S/gestalt-seller-images-prod-us-east-1/CITY/OVERLAY.png"}
+                }
+              },
+              {"type": "TextCustomization", "label": "Enter Your Name", "inputValue": "BUD"},
+              {"type": "TextCustomization", "label": "Enter Your Number", "inputValue": "276"}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "version3.0": {
+    "customizationInfo": {
+      "surfaces": [
+        {
+          "areas": [
+            {"customizationType": "Options", "name": "选项下拉列表 2", "label": "Choose Your Style", "optionValue": "City Map"},
+            {"customizationType": "TextPrinting", "name": "数据 1", "label": "Enter Your Name", "text": "BUD"},
+            {"customizationType": "TextPrinting", "name": "数据 2", "label": "Enter Your Number", "text": "276"}
+          ]
+        }
+      ]
+    }
+  }
+}
