@@ -103,7 +103,8 @@ def test_real_style_zip_import_duplicate_logo_and_review(api):
     raw = archive()
     response = client.post("/api/order-imports", files={"file": ("orders.zip", raw)}, data={"categoryCode": "BLADE_SHOES"})
     assert response.status_code == 200, response.text
-    assert response.json()["summary"] == {
+    summary = response.json()["summary"]
+    assert {key: summary[key] for key in ("jsonCount", "itemCount", "newItemCount", "duplicateItemCount")} == {
         "jsonCount": 1, "itemCount": 1, "newItemCount": 1, "duplicateItemCount": 0,
     }
     with Session(engine) as session:

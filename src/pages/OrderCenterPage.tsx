@@ -13,16 +13,17 @@ const TYPE_LABEL: Record<string, string> = {
 };
 const STATUS_TONE: Record<string, string> = {
   PARSED: 'bg-emerald-50 text-emerald-600',
+  REVIEW_REQUIRED: 'bg-amber-50 text-amber-600',
+  NON_CUSTOM: 'bg-blue-50 text-blue-600',
   PARTIAL: 'bg-amber-50 text-amber-600',
   FAILED: 'bg-red-50 text-red-600',
   DUPLICATE: 'bg-gray-100 text-gray-500',
 };
-const MATCH_TONE: Record<string, string> = {
-  NOT_STARTED: 'bg-gray-100 text-gray-500',
-  CONFIRMED: 'bg-emerald-50 text-emerald-600',
-  REVIEW_REQUIRED: 'bg-amber-50 text-amber-600',
-  UNMATCHED: 'bg-gray-100 text-gray-500',
-  FAILED: 'bg-red-50 text-red-600',
+const PARSE_LABEL: Record<string, string> = {
+  PARSED: '已解析',
+  REVIEW_REQUIRED: '待审核',
+  FAILED: '解析失败',
+  NON_CUSTOM: '无定制信息',
 };
 
 /** 订单识别：上传领星 ZIP / 导入记录 / 解析结果（素材匹配与异常审核在后续阶段） */
@@ -36,6 +37,13 @@ export default function OrderCenterPage() {
   const [selectedBatch, setSelectedBatch] = useState<OrderImportBatchDto | null>(null);
   const [items, setItems] = useState<OrderItemDto[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [detailItem, setDetailItem] = useState<OrderItemDto | null>(null);
+  const [rawJson, setRawJson] = useState<unknown>(null);
+  const [rawJsonLoading, setRawJsonLoading] = useState(false);
+  const [parseFilter, setParseFilter] = useState('ALL');
+  const [imageFilter, setImageFilter] = useState('ALL');
+  const [colorFilter, setColorFilter] = useState('ALL');
+  const [search, setSearch] = useState('');
 
   const loadBatches = useCallback(async () => {
     try {
@@ -66,7 +74,7 @@ export default function OrderCenterPage() {
       try {
         const resp = await materialApi.importOrderZip(file, categoryCode);
         toast.success(
-          `导入完成：${resp.summary.itemCount ?? 0} 个订单（新增 ${resp.summary.newItemCount ?? 0}，去重 ${resp.summary.duplicateItemCount ?? 0}）`,
+          `导入完成：Excel ${resp.summary.itemCount ?? 0} 行 · JSON ${resp.summary.jsonCount ?? 0} · PARSED ${resp.summary.parsed ?? 0} · NON_CUSTOM ${resp.summary.non_custom ?? 0} · REVIEW ${resp.summary.review_required ?? 0} · FAILED ${resp.summary.failed ?? 0}`,
         );
         await loadBatches();
         setTab('records');
@@ -93,7 +101,30 @@ export default function OrderCenterPage() {
     }
   }, []);
 
+  const openDetail = useCallback(async (item: OrderItemDto) => {
+    setDetailItem(item);
+    setRawJson(null);
+    setRawJsonLoading(true);
+    try {
+      const result = await materialApi.getOrderItemRawJson(item.id);
+      setRawJson(result.rawJson ?? null);
+    } catch {
+      setRawJson(null);
+    } finally {
+      setRawJsonLoading(false);
+    }
+  }, []);
+
   const norm = (item: OrderItemDto): Record<string, unknown> => item.normalized ?? {};
+  const visibleItems = items.filter((item) => {
+    const p = norm(item);
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q || [item.orderId, item.orderItemId, item.childAsin, item.sku, p.customName, p.customNumber, p.buyerRequest].some((v) => String(v ?? '').toLowerCase().includes(q));
+    const matchesParse = parseFilter === 'ALL' || item.parseStatus === parseFilter;
+    const matchesImage = imageFilter === 'ALL' || String(p.imageType ?? '') === imageFilter;
+    const matchesColor = colorFilter === 'ALL' || String(p.soleColor ?? '').toUpperCase() === colorFilter;
+    return matchesSearch && matchesParse && matchesImage && matchesColor;
+  });
 
   return (
     <div className="flex h-screen flex-col bg-[#f5f6f8] text-gray-800">
@@ -201,6 +232,13 @@ export default function OrderCenterPage() {
                     <span>文字 {items.filter((x) => Boolean(norm(x).customName || norm(x).customNumber || norm(x).frontName || norm(x).frontNumber || norm(x).backName || norm(x).backNumber)).length}</span>
                     <span>Logo {items.filter((x) => Boolean(norm(x).hasBuyerLogo)).length}</span>
                   </div>
+                  <div className="mb-3 flex flex-wrap items-center gap-2 rounded border border-gray-100 bg-gray-50 p-2 text-xs">
+                    <select value={parseFilter} onChange={(e) => setParseFilter(e.target.value)} className="rounded border border-gray-200 bg-white px-2 py-1"><option value="ALL">全部状态</option><option value="PARSED">已解析</option><option value="REVIEW_REQUIRED">待审核</option><option value="NON_CUSTOM">无定制信息</option><option value="FAILED">解析失败</option></select>
+                    <select value={imageFilter} onChange={(e) => setImageFilter(e.target.value)} className="rounded border border-gray-200 bg-white px-2 py-1"><option value="ALL">全部图片</option><option value="MATERIAL_SOURCE">素材源图</option><option value="FINAL_EFFECT">最终效果图</option><option value="PREVIEW_ONLY">仅预览</option><option value="UNKNOWN">未知</option></select>
+                    <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)} className="rounded border border-gray-200 bg-white px-2 py-1"><option value="ALL">全部鞋底色</option><option value="BLACK">BLACK</option><option value="WHITE">WHITE</option></select>
+                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索订单号 / ASIN / SKU / 定制内容" className="min-w-[220px] flex-1 rounded border border-gray-200 bg-white px-2 py-1" />
+                    <span className="text-gray-400">显示 {visibleItems.length} / {items.length}</span>
+                  </div>
                   <table className="w-full border-collapse text-left text-xs">
                     <thead>
                       <tr className="border-b border-gray-200 text-gray-400">
@@ -214,11 +252,11 @@ export default function OrderCenterPage() {
                         <th className="px-2 py-1.5 font-normal">图片类型</th>
                         <th className="px-2 py-1.5 font-normal">素材图 / 最终效果图</th>
                         <th className="px-2 py-1.5 font-normal">Logo</th>
-                        <th className="px-2 py-1.5 font-normal">匹配</th>
+                        <th className="px-2 py-1.5 font-normal">解析</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((item) => {
+                      {visibleItems.map((item) => {
                         const p = norm(item);
                         return (
                           <tr key={item.id} className="border-b border-gray-50 align-top hover:bg-gray-50/50">
@@ -226,7 +264,7 @@ export default function OrderCenterPage() {
                             <td className="px-2 py-1.5 font-mono text-[11px]">{item.orderItemId ?? '—'}</td>
                             <td className="px-2 py-1.5 font-mono text-[11px]">{item.childAsin ?? '—'}</td>
                             <td className="px-2 py-1.5">{item.quantity}</td>
-                            <td className="px-2 py-1.5"><span className={`rounded px-1.5 py-0.5 text-[10px] ${STATUS_TONE[item.parseStatus] ?? 'bg-gray-100 text-gray-500'}`}>{item.parseStatus}</span></td>
+                            <td className="px-2 py-1.5"><span className={`rounded px-1.5 py-0.5 text-[10px] ${STATUS_TONE[item.parseStatus] ?? 'bg-gray-100 text-gray-500'}`}>{PARSE_LABEL[item.parseStatus] ?? item.parseStatus}</span></td>
                             <td className="px-2 py-1.5">
                               {[p.customName, p.customNumber].filter(Boolean).join(' · ') || '—'}
                               {Boolean(p.frontName || p.backName) && (
@@ -257,9 +295,9 @@ export default function OrderCenterPage() {
                               ) : '—'}
                             </td>
                             <td className="px-2 py-1.5">
-                              <span className={`rounded px-1.5 py-0.5 text-[10px] ${MATCH_TONE[item.matchStatus] ?? 'bg-gray-100 text-gray-500'}`}>
-                                {item.matchStatus}
-                              </span>
+                              <button onClick={() => void openDetail(item)} className="rounded border border-[#3d3192]/30 px-2 py-0.5 text-[10px] text-[#3d3192] hover:bg-[#f0eef9]">
+                                查看详情
+                              </button>
                             </td>
                           </tr>
                         );
@@ -269,6 +307,33 @@ export default function OrderCenterPage() {
                   </>
                 )}
               </div>
+              {detailItem && (() => {
+                const p = norm(detailItem);
+                const imageUrl = String(p.materialUrl ?? p.finalEffectUrl ?? '');
+                const source = (p.details as Record<string, unknown> | undefined)?.source as Record<string, unknown> | undefined;
+                return (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setDetailItem(null)}>
+                    <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-between border-b pb-3">
+                        <div className="font-medium text-gray-800">订单详情 · {detailItem.orderId}</div>
+                        <button onClick={() => setDetailItem(null)} className="text-sm text-gray-500">关闭</button>
+                      </div>
+                      <div className="grid gap-4 py-4 md:grid-cols-2">
+                        <section><h3 className="mb-2 text-xs font-semibold text-gray-700">基础信息</h3><div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                          <span>Order ID：{detailItem.orderId}</span><span>Order Item：{detailItem.orderItemId ?? '—'}</span><span>ASIN：{detailItem.childAsin ?? '—'}</span><span>SKU：{detailItem.sku ?? '—'}</span><span>Quantity：{detailItem.quantity}</span><span>Category：{detailItem.categoryCode}</span><span>Parse：{detailItem.parseStatus}</span><span>Parser：{detailItem.parserVersion}</span>
+                        </div></section>
+                        <section><h3 className="mb-2 text-xs font-semibold text-gray-700">定制信息</h3><div className="space-y-1 text-xs text-gray-600">
+                          <div>Name：{String(p.customName ?? '—')} · Number：{String(p.customNumber ?? '—')}</div><div>Front：{String(p.frontName ?? '—')} · {String(p.frontNumber ?? '—')}</div><div>Back：{String(p.backName ?? '—')} · {String(p.backNumber ?? '—')}</div><div>Buyer Request：{String(p.buyerRequest ?? '—')}</div>
+                        </div></section>
+                      </div>
+                      <section className="border-t py-4"><h3 className="mb-2 text-xs font-semibold text-gray-700">图片信息</h3>{detailItem.parseStatus === 'NON_CUSTOM' ? <div className="text-xs text-blue-600">无定制图片</div> : <><div className="mb-2 text-xs text-gray-600">类型：{String(p.imageType ?? '—')} · 鞋底色：{String(p.soleColor ?? '—')}</div>{imageUrl && <><img src={imageUrl} alt="订单图片" className="max-h-72 max-w-full rounded border object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} /><div className="mt-1 break-all text-[10px] text-gray-400">{imageUrl}</div></>}</>}</section>
+                      <section className="border-t py-4"><h3 className="mb-2 text-xs font-semibold text-gray-700">买家附件</h3><div className="text-xs text-gray-600">原图：{Array.isArray(p.buyerLogoOriginal) && p.buyerLogoOriginal.length ? String((p.buyerLogoOriginal[0] as Record<string, unknown>).name ?? '已提供') : '无'} · SVG：{Array.isArray(p.buyerLogoSvg) && p.buyerLogoSvg.length ? String((p.buyerLogoSvg[0] as Record<string, unknown>).name ?? '已提供') : '无'}</div></section>
+                      <section className="border-t py-4"><h3 className="mb-2 text-xs font-semibold text-gray-700">解析证据</h3><pre className="overflow-x-auto rounded bg-gray-50 p-3 text-[10px] text-gray-600">{JSON.stringify({ source, imageStructurePath: p.imageStructurePath, reason: (p.details as Record<string, unknown> | undefined)?.reason }, null, 2)}</pre></section>
+                      <section className="border-t py-4"><h3 className="mb-2 text-xs font-semibold text-gray-700">原始 JSON</h3>{rawJsonLoading ? <div className="text-xs text-gray-400">读取中…</div> : <pre className="max-h-72 overflow-auto rounded bg-gray-50 p-3 text-[10px] text-gray-600">{rawJson ? JSON.stringify(rawJson, null, 2) : '暂无原始 JSON'}</pre>}</section>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : tab === 'upload' ? (
             /* ---------- 上传订单 ---------- */

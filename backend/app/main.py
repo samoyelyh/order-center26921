@@ -76,6 +76,7 @@ async def material_platform_error_handler(_: Request, exc: MaterialPlatformUnava
 # ---------------------------------------------------------------- 路由（仅订单域）
 
 app.include_router(orders.router, prefix=settings.api_prefix)
+app.include_router(orders.raw_router, prefix=settings.api_prefix)
 app.include_router(order_match.router, prefix=settings.api_prefix)
 app.include_router(order_match.review_router, prefix=settings.api_prefix)
 app.include_router(order_match.sales_router, prefix=settings.api_prefix)

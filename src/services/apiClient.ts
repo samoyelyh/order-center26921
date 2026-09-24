@@ -104,6 +104,13 @@ export interface OrderImportResponseDto {
   summary: Record<string, number>
 }
 
+export interface RawOrderJsonDto {
+  itemId: string
+  available: boolean
+  path?: string | null
+  rawJson?: unknown
+}
+
 /** 素材平台契约返回的 Variant 候选（order-center 前端只读这些展示字段） */
 export interface MaterialVariantOption {
   variantId: string
@@ -147,6 +154,8 @@ export const materialApi = {
   listOrderImports: () => request<OrderImportBatchDto[]>('/order-imports'),
   getOrderImportItems: (batchId: string) =>
     request<OrderItemDto[]>(`/order-imports/${encodeURIComponent(batchId)}/items`),
+  getOrderItemRawJson: (itemId: string) =>
+    request<RawOrderJsonDto>(`/order-items/${encodeURIComponent(itemId)}/raw-json`),
 
   // ---- 素材归因 ----
   autoMatchItem: (itemId: string, actor = 'system') =>

@@ -275,7 +275,7 @@ def import_order_zip(
         batch.total_json_count = canonical.total_json_count
         batch.total_item_count = canonical.total_item_count
         db.commit()
-        return batch, {"jsonCount": batch.total_json_count, "itemCount": batch.total_item_count, "newItemCount": 0, "duplicateItemCount": batch.total_item_count}
+        return batch, _summary_stats(db, canonical.id, {"newItemCount": 0, "duplicateItemCount": batch.total_item_count})
 
     archive_files = _safe_archive_files(data, filename)
     for source_path, source_bytes in archive_files:
@@ -428,4 +428,24 @@ def import_order_zip(
     elif review_count:
         batch.status = "PARTIAL"
     db.commit()
-    return batch, {"jsonCount": json_count, "itemCount": item_count, "newItemCount": new_count, "duplicateItemCount": duplicate_count}
+    return batch, _summary_stats(db, batch.id, {"newItemCount": new_count, "duplicateItemCount": duplicate_count})
+
+
+def _summary_stats(db: Session, batch_id: str, base: dict[str, int]) -> dict[str, int]:
+    """Return import and parse counts for the upload confirmation UI."""
+    items = db.execute(
+        select(OrderItem).join(OrderImportBatchItem, OrderImportBatchItem.order_item_id == OrderItem.id)
+        .where(OrderImportBatchItem.import_batch_id == batch_id)
+    ).scalars().all()
+    stats = {"jsonCount": sum(1 for _ in db.execute(select(OrderImportBatchItem.raw_json_asset_id).where(OrderImportBatchItem.import_batch_id == batch_id)).all()), "itemCount": len(items), **base}
+    for status in ("PARSED", "REVIEW_REQUIRED", "FAILED", "NON_CUSTOM"):
+        stats[status.lower()] = sum(1 for item in items if item.parse_status == status)
+    for image_type in ("MATERIAL_SOURCE", "FINAL_EFFECT", "PREVIEW_ONLY", "UNKNOWN"):
+        stats[image_type.lower()] = sum(1 for item in items if item.parse_status != "NON_CUSTOM" and (item.normalized_payload or {}).get("imageType") == image_type)
+    stats["black"] = sum(1 for item in items if item.parse_status != "NON_CUSTOM" and (item.normalized_payload or {}).get("soleColor") == "BLACK")
+    stats["white"] = sum(1 for item in items if item.parse_status != "NON_CUSTOM" and (item.normalized_payload or {}).get("soleColor") == "WHITE")
+    stats["customName"] = sum(1 for item in items if (item.normalized_payload or {}).get("customName"))
+    stats["customNumber"] = sum(1 for item in items if (item.normalized_payload or {}).get("customNumber"))
+    stats["buyerRequest"] = sum(1 for item in items if (item.normalized_payload or {}).get("buyerRequest"))
+    stats["buyerLogo"] = sum(1 for item in items if (item.normalized_payload or {}).get("hasBuyerLogo"))
+    return stats
