@@ -1,0 +1,108 @@
+{
+  "source": "Sanitized from 订单管理20260915 export; identifiers, buyer text and URLs replaced",
+  "cases": {
+    "FINAL_EFFECT": {
+      "orderId": "TEST-ORDER-FINAL",
+      "orderItemId": "TEST-ITEM-FINAL",
+      "asin": "TEST-ASIN-FINAL",
+      "quantity": 1,
+      "vendorCode": null,
+      "customizationData": {
+        "type": "PageContainerCustomization",
+        "children": [{
+          "type": "PreviewContainerCustomization",
+          "label": "Custom Soccer Sneakers",
+          "children": [{
+            "type": "FlatContainerCustomization",
+            "children": [
+              {
+                "type": "OptionCustomization",
+                "label": "Choose Your Color",
+                "optionSelection": {
+                  "name": "Black",
+                  "label": "Black",
+                  "overlayImage": {"imageUrl": "https://fixture.invalid/final-black.png"},
+                  "thumbnailImage": {"imageUrl": "https://fixture.invalid/final-black.png"}
+                },
+                "displayValue": "Black"
+              },
+              {"type": "TextCustomization", "label": "Enter Your Name", "inputValue": "TEST NAME"},
+              {"type": "TextCustomization", "label": "Enter Your Number", "inputValue": "10"},
+              {"type": "TextCustomization", "label": "Leave Your Request", "inputValue": "TEST REQUEST"}
+            ]
+          }],
+          "snapshot": {"imageName": "sanitized-final.jpg"},
+          "svg": "sanitized-final.svg"
+        }]
+      },
+      "version3.0": {
+        "customizationInfo": {
+          "surfaces": [{
+            "name": "Custom Soccer Sneakers",
+            "areas": [
+              {"customizationType": "Options", "label": "Choose Your Color", "optionValue": "Black"},
+              {"customizationType": "TextPrinting", "label": "Enter Your Name", "text": "TEST NAME"},
+              {"customizationType": "TextPrinting", "label": "Enter Your Number", "text": "10"}
+            ]
+          }]
+        }
+      }
+    },
+    "MATERIAL_SOURCE": {
+      "orderId": "TEST-ORDER-MATERIAL",
+      "orderItemId": "TEST-ITEM-MATERIAL",
+      "asin": "TEST-ASIN-MATERIAL",
+      "quantity": 1,
+      "vendorCode": null,
+      "customizationData": {
+        "type": "PageContainerCustomization",
+        "children": [{
+          "type": "PreviewContainerCustomization",
+          "label": "Size",
+          "children": [{
+            "type": "FlatContainerCustomization",
+            "children": [
+              {
+                "type": "OptionCustomization",
+                "label": "Choose Your Color",
+                "optionSelection": {
+                  "name": "White",
+                  "thumbnailImage": {"imageUrl": "https://fixture.invalid/final-white.png"},
+                  "overlayImage": {"imageUrl": "https://fixture.invalid/final-white.png"}
+                },
+                "displayValue": "White"
+              },
+              {
+                "type": "OptionCustomization",
+                "label": "Choose Your Style",
+                "optionSelection": {
+                  "name": "City Map",
+                  "thumbnailImage": {"imageUrl": "https://fixture.invalid/material.png"},
+                  "overlayImage": {"imageUrl": "https://fixture.invalid/material-overlay.png"}
+                },
+                "displayValue": "City Map"
+              },
+              {"type": "TextCustomization", "label": "Enter Your Name", "inputValue": "TEST NAME"},
+              {"type": "TextCustomization", "label": "Enter Your Number", "inputValue": "7"}
+            ]
+          }],
+          "snapshot": {"imageName": "sanitized-material.jpg"},
+          "svg": "sanitized-material.svg"
+        }]
+      },
+      "version3.0": {
+        "customizationInfo": {
+          "surfaces": [{
+            "name": "Size",
+            "areas": [
+              {"customizationType": "Options", "label": "Choose Your Color", "optionValue": "White"},
+              {"customizationType": "Options", "label": "Choose Your Style", "optionValue": "City Map"},
+              {"customizationType": "TextPrinting", "label": "Enter Your Name", "text": "TEST NAME"},
+              {"customizationType": "TextPrinting", "label": "Enter Your Number", "text": "7"}
+            ]
+          }]
+        }
+      }
+    }
+  }
+}
